@@ -57,4 +57,4 @@ The goal is to clean and transform raw sales data, analyze key business metrics,
 
 Below is the simplified data model used in this analysis:
 
-![Data Model](model.png)
+[Data Model](data_model.png)
