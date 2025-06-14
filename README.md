@@ -36,12 +36,12 @@ The goal is to clean and transform raw sales data, analyze key business metrics,
 
 | Sprint Week | Focus Area                        | Description |
 |-------------|-----------------------------------|-------------|
-| Week 1      | Data Cleaning & Aggregation       | Remove duplicates, format dates, and create a clean fact table. |
-| Week 2      | Database Structuring              | Add keys and relationships; create sales order view. |
-| Week 3      | KPIs & Business Insights          | Channel performance, top clients, and sales trends. |
-| Week 4      | Product & Margin Analysis         | Top products by margin and discount outliers. |
-| Week 5      | Client Segmentation & Reactivation| Segment stores and identify inactive clients. |
-| Week 6      | Product Recommender System        | Recommend products based on co-purchase patterns. |
+| Task 1      | Data Cleaning & Aggregation       | Remove duplicates, format dates, and create a clean fact table. |
+| Task 2      | Database Structuring              | Add keys and relationships; create sales order view. |
+| Task 3      | KPIs & Business Insights          | Channel performance, top clients, and sales trends. |
+| Task 4      | Product & Margin Analysis         | Top products by margin and discount outliers. |
+| Task 5      | Client Segmentation & Reactivation| Segment stores and identify inactive clients. |
+| Task 6      | Product Recommender System        | Recommend products based on co-purchase patterns. |
 
 
 ## Tools & Technologies
