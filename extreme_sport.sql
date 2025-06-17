@@ -113,7 +113,7 @@ GROUP BY t.pais, year, quarter
 ORDER BY t.pais, year, quarter
 LIMIT 50;
 
--- TASK 4 - ADVANCED PRODUCT ANALYSIS
+-- TASK 4 - PRODUCT ANALYSIS
 ---------------------------------------------------
 
 -- Top 20 products with highest margin per line
@@ -160,72 +160,86 @@ WITH fact_prod_perc AS (
 SELECT * FROM fact_prod_perc
 WHERE percent >= 0.9;
 
--- TASK 5 - CUSTOMER SEGMENTATION & POTENTIAL
+-- TASK 5 - INVENTORY ANALYSIS 
 ---------------------------------------------------
 
--- Segment stores by #orders and revenue
-CREATE VIEW v_matriz_segmentacion AS 
-WITH pedidos_fact_tienda AS ( 
-  SELECT id_tienda, COUNT(id_pedido) AS num_pedidos, SUM(facturacion) AS fact_tienda
-  FROM v_ventas_agr_pedido
-  GROUP BY id_tienda
-),
-medias AS (
-  SELECT AVG(num_pedidos) AS avg_pedidos, AVG(fact_tienda) AS avg_fact
-  FROM pedidos_fact_tienda
-)
-SELECT *,
-  CASE
-    WHEN num_pedidos <= avg_pedidos AND fact_tienda <= avg_fact THEN 'Low-Low'
-    WHEN num_pedidos <= avg_pedidos AND fact_tienda > avg_fact THEN 'Low-High'
-    WHEN num_pedidos > avg_pedidos AND fact_tienda <= avg_fact THEN 'High-Low'
-    WHEN num_pedidos > avg_pedidos AND fact_tienda > avg_fact THEN 'High-High'
-    ELSE 'Error'
-  END AS segment
-FROM pedidos_fact_tienda, medias;
+-- Segment products by ABC category (A: top sellers, B: moderate, C: low)
+ALTER TABLE productos
+ADD COLUMN categoria_abc VARCHAR(25);
 
--- Count clients per segment
-SELECT segment, COUNT(*) FROM v_matriz_segmentacion GROUP BY segment;
-
--- Reactivation: identify inactive stores (>90 days)
-WITH ult_fecha_total AS (
-  SELECT MAX(fecha) AS ult_fecha_total FROM ventas_agr
-),
-ult_fecha_tienda AS (
-  SELECT id_tienda, MAX(fecha) AS ult_fecha_tienda
+WITH cantidad_ventas_totales AS (
+  SELECT 
+    id_prod,
+    SUM(cantidad) AS total_cantidad_vendida
   FROM ventas_agr
-  GROUP BY id_tienda
+  GROUP BY id_prod
+),
+total_general AS (
+  SELECT SUM(total_cantidad_vendida) AS total FROM cantidad_ventas_totales
+),
+ventas_con_porcentaje AS (
+  SELECT 
+    c.id_prod,
+    c.total_cantidad_vendida,
+    t.total AS total_general,
+    SUM(c.total_cantidad_vendida) OVER (
+      ORDER BY c.total_cantidad_vendida DESC
+    ) AS acumulado,
+    ROUND(
+      SUM(c.total_cantidad_vendida) OVER (
+        ORDER BY c.total_cantidad_vendida DESC
+      ) / t.total, 4
+    ) AS porcentaje_acumulado
+  FROM cantidad_ventas_totales c
+  CROSS JOIN total_general t
+),
+categorias_abc AS (
+  SELECT
+    p.id_prod,
+    CASE
+      WHEN v.porcentaje_acumulado <= 0.80 THEN 'A'
+      WHEN v.porcentaje_acumulado <= 0.95 THEN 'B'
+      WHEN v.porcentaje_acumulado > 0.95 THEN 'C'
+      ELSE 'sin movimientos'
+    END AS categoria_abc
+  FROM productos p
+  LEFT JOIN ventas_con_porcentaje v ON p.id_prod = v.id_prod
 )
-SELECT *, DATEDIFF(ult_fecha_total, ult_fecha_tienda) AS dias_sin_compra
-FROM ult_fecha_tienda, ult_fecha_total
-WHERE DATEDIFF(ult_fecha_total, ult_fecha_tienda) > 90;
+UPDATE productos p
+JOIN categorias_abc c ON p.id_prod = c.id_prod
+SET 
+  p.categoria_abc = c.categoria_abc;
 
--- TASK 6 - ITEM-ITEM RECOMMENDER SYSTEM
+-- TASK 6 - RECOMMENDER STOCK MINIMUN 
 ---------------------------------------------------
 
--- Product pairs bought in same order
-CREATE TABLE recomendador AS
-SELECT v1.id_prod AS antecedente, v2.id_prod AS consecuente, COUNT(v1.id_pedido) AS frecuencia
-FROM v_ventas_agr_pedido v1
-INNER JOIN v_ventas_agr_pedido v2
-  ON v1.id_pedido = v2.id_pedido
-  AND v1.id_prod < v2.id_prod
-GROUP BY v1.id_prod, v2.id_prod;
+-- Calculate recommended minimum stock level using demand and variability
 
--- Recommend products to a specific store based on co-purchases
-WITH input_cliente AS (
-  SELECT DISTINCT id_prod, id_tienda
+ALTER TABLE productos
+ADD COLUMN stock_minimo INT;
+
+WITH ventas_diarias AS (
+  SELECT 
+    id_prod,
+    fecha,
+    SUM(cantidad) AS cantidad_dia
   FROM ventas_agr
-  WHERE id_tienda = '1201'
+  GROUP BY id_prod, fecha
 ),
-productos_recomendados AS (
-  SELECT consecuente, SUM(frecuencia) AS frecuencia
-  FROM input_cliente c
-  LEFT JOIN recomendador r ON c.id_prod = r.antecedente
-  GROUP BY consecuente
+estadisticas_ventas AS (
+  SELECT 
+    id_prod,
+    AVG(cantidad_dia) AS demanda_promedio_diaria,
+    STDDEV_POP(cantidad_dia) AS desviacion_ventas
+  FROM ventas_diarias
+  GROUP BY id_prod
 )
-SELECT consecuente AS recomendado, frecuencia
-FROM productos_recomendados r
-LEFT JOIN input_cliente c ON r.consecuente = c.id_prod
-WHERE c.id_prod IS NULL
-LIMIT 10;
+, stock_minimo_calc AS (
+  SELECT 
+    id_prod,
+    CEIL(demanda_promedio_diaria * 5 + 1.65 * desviacion_ventas * SQRT(5)) AS stock_minimo_estimado
+  FROM estadisticas_ventas
+)
+UPDATE productos p
+JOIN stock_minimo_calc s ON p.id_prod = s.id_prod
+SET p.stock_minimo = s.stock_minimo_estimado;
