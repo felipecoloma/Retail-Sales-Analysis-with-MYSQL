@@ -1,4 +1,4 @@
-# Retail Sales Analysis with SQL
+# Retail Sales & Inventory Analysis with MYSQL
 
 This project simulates a complete sales and inventory analysis for **Extreme Sport House**, a mountain and adventure gear distributor. Using real-world business logic and **MySQL**, this analysis covers the company's retail performance across multiple sales channels and store locations. 
 
