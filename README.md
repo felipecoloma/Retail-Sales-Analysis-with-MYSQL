@@ -1,12 +1,12 @@
 # Retail Sales Analysis with SQL
 
-This project simulates a complete sales analysis for **Extreme Sport House**, a mountain and adventure gear distributor. Using real-world business logic and **MySQL**, this analysis covers the company's retail performance across multiple sales channels and store locations. 
+This project simulates a complete sales and inventory analysis for **Extreme Sport House**, a mountain and adventure gear distributor. Using real-world business logic and **MySQL**, this analysis covers the company's retail performance across multiple sales channels and store locations. 
 
-The goal is to clean and transform raw sales data, analyze key business metrics, identify top-performing products, and develop data-driven recommendations — all using MYSQL.
+The goal is to clean and transform raw sales data, analyze behavior, classify product performance , and estimate minimum stock needs — all using MYSQL.
 
 # Business Context
 
-**Extreme Sport House** distributes technical gear for trekking, mountaineering, climbing, and outdoor adventures. The company operates through physical stores, online channels, and external retailers. This analysis focuses on data from 2020 to 2022, offering insights to support decision-making in **product performance**, **client segmentation**, and **sales strategies**.
+**Extreme Sport House** distributes technical gear for trekking, mountaineering, climbing, and outdoor adventures. The company operates through physical stores, online channels, and external retailers. This analysis focuses on data from 2020 to 2023, offering insights to support decision-making in **product performance**, **channel performance**, and **stock management**.
 
 
 # Key Highlights
@@ -17,8 +17,8 @@ The goal is to clean and transform raw sales data, analyze key business metrics,
 -  Calculated key performance indicators (KPIs)
 -  Analyzed sales by channel, region, and product category
 -  Identified outliers and top revenue-generating items
--  Segmented customers using RFM-style metrics
--  Developed a basic recommender system using product pairing
+-  Classified products using ABC analysis
+-  Estimated minimun stock levels based on demand variability
 
 
 # Database Structure
@@ -38,8 +38,8 @@ The goal is to clean and transform raw sales data, analyze key business metrics,
 | Task 2      | Database Structuring              | Add keys and relationships; create sales order view. |
 | Task 3      | KPIs & Business Insights          | Channel performance, top clients, and sales trends. |
 | Task 4      | Product & Margin Analysis         | Top products by margin and discount outliers. |
-| Task 5      | Client Segmentation & Reactivation| Segment stores and identify inactive clients. |
-| Task 6      | Product Recommender System        | Recommend products based on co-purchase patterns. |
+| Task 5      | ABC Product Classification        | Categorize products into ABC classes based on quantity of sales |
+| Task 6      | Stock Minimun Estimation          | Estimate suggested stock levels, using daily demand and standard deviation. |
 
 
 ## Tools & Technologies
